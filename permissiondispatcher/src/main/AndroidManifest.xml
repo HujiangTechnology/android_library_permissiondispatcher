@@ -1,0 +1,14 @@
+<manifest package="com.hujiang.permissiondispatcher"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+
+        <activity
+            android:name="com.hujiang.permissiondispatcher.ShadowPermissionActivity"
+            android:theme="@style/Theme.Transparent"
+            android:launchMode="singleTask">
+        </activity>
+
+    </application>
+
+</manifest>
