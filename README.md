@@ -6,10 +6,10 @@ android_library_permissiondispatcher
 ### 依赖
 
 ```
-com.hujiang.permissiondispatcher:permissiondispatcher:0.0.1
+com.hujiang.permissiondispatcher:permissiondispatcher:1.0.0
 ```
 
-[最新版本可以从这个查询到](http://192.168.156.142:8081/nexus/#nexus-search;quick~com.hujiang.permissiondispatcher)
+[最新版本可以从这个查询到](https://bintray.com/firefly1126/maven/permissiondispatcher/view)
 
 ### 使用
 
@@ -41,7 +41,7 @@ com.hujiang.permissiondispatcher:permissiondispatcher:0.0.1
 
 * @NeedPermission
 
-这是一个用于标识类及方法所需权限的注解，用于Activity及Fragment，用在其他类不生效，需要配合AOPlib使用才有效
+用于标识类，方法需要哪些权限
 
 ```
 
@@ -55,4 +55,22 @@ public class MainActivity extents Activity {
     private void startBActivity(String name, long id) {
     }
 
+```
+
+### License
+
+```
+Copyright (C) 2016 Hujiang, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
