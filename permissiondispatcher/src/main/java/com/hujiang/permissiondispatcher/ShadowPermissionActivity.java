@@ -193,7 +193,9 @@ public class ShadowPermissionActivity extends AppCompatActivity {
             }
         }
 
-        if (needPermissions.isEmpty()) {
+        if (!PermissionUtils.isOverMarshmallow()) {
+            permissionGranted();
+        } else if (needPermissions.isEmpty()) {
             permissionGranted();
         } else if (isAllRequested) {
             //From Setting Activity
@@ -205,8 +207,6 @@ public class ShadowPermissionActivity extends AppCompatActivity {
             //Need Request Permissions
             requestPermissions(needPermissions);
         }
-
-
     }
 
     @TargetApi(value = Build.VERSION_CODES.M)

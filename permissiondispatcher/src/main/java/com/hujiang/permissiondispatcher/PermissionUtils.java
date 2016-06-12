@@ -58,22 +58,22 @@ final public class PermissionUtils {
     @TargetApi(value = Build.VERSION_CODES.M)
     public static List<String> findDeniedPermissions(Activity activity, String... permission) {
         List<String> denyPermissions = new ArrayList<>();
+        if (!isOverMarshmallow()) {
+            return denyPermissions;
+        }
+
         for (String value : permission) {
             // CommonsWare's blog post:https://commonsware.com/blog/2015/08/17/random-musings-android-6p0-sdk.html
             //support SYSTEM_ALERT_WINDOW,WRITE_SETTINGS
-            if (isOverMarshmallow() && value.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)){
-                if(!Settings.canDrawOverlays(activity)){
+            if (isOverMarshmallow() && value.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+                if(!Settings.canDrawOverlays(activity)) {
                     denyPermissions.add(value);
                 }
-            } else if(isOverMarshmallow() && value.equals(Manifest.permission.WRITE_SETTINGS)){
-                if(!Settings.System.canWrite(activity)){
+            } else if(isOverMarshmallow() && value.equals(Manifest.permission.WRITE_SETTINGS)) {
+                if(!Settings.System.canWrite(activity)) {
                     denyPermissions.add(value);
                 }
-            }
-            //else if (activity.checkSelfPermission(value) != PackageManager.PERMISSION_GRANTED) {
-            //    denyPermissions.add(value);
-            //}
-            else if(PermissionChecker.checkSelfPermission(activity, value) != PackageManager.PERMISSION_GRANTED){
+            } else if(PermissionChecker.checkSelfPermission(activity, value) != PackageManager.PERMISSION_GRANTED) {
                 denyPermissions.add(value);
             }
         }

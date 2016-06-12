@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.StringRes;
 
+import java.security.acl.Permission;
+
 /**
  * check permission
  * <br>
@@ -164,7 +166,17 @@ public class CheckPermission {
             throw new NullPointerException("You must setPermissions() on CheckPermission");
         }
 
-        requestPermissions(permissionListener);
+        if (!PermissionUtils.isOverMarshmallow()) {
+            if (permissionListener != null) {
+                permissionListener.permissionGranted();
+            }
+        } else if (!PermissionUtils.hasSelfPermissions(mContext, mPermissions)) {
+            requestPermissions(permissionListener);
+        } else {
+            if (permissionListener != null) {
+                permissionListener.permissionGranted();
+            }
+        }
     }
 
     private void requestPermissions(PermissionListener permissionListener) {
