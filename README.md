@@ -6,7 +6,7 @@ android_library_permissiondispatcher
 ### 依赖
 
 ```
-com.hujiang.permissiondispatcher:permissiondispatcher:1.0.0
+com.hujiang.permissiondispatcher:permissiondispatcher:1.0.2
 ```
 
 [最新版本可以从这个查询到](https://bintray.com/firefly1126/maven/permissiondispatcher/view)
@@ -56,6 +56,7 @@ public class MainActivity extents Activity {
     }
 
 ```
+### [CHANGELOG](CHANGELOG.md)
 
 ### License
 
