@@ -56,4 +56,10 @@ public @interface NeedPermission {
      * @return 是否显示跳转到应用权限设置界面
      */
     boolean needGotoSetting() default false;
+
+    /**
+     * 是否无视权限，程序正常往下走
+     * @return 是否无视权限，程序正常往下走
+     */
+    boolean runIgnorePermission() default false;
 }
