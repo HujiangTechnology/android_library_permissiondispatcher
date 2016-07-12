@@ -1,3 +1,6 @@
+### v1.0.4(2016-07-12)
+* fix app label shown on the transparent activity
+
 ### v1.0.3(2016-07-11)
 * add NeedPermission.runIgnorePermission
 
