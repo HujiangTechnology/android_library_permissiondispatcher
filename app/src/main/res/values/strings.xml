@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PermissionDispatcher</string>
+    <string name="app_name">权限分发</string>
     <string name="request_permission">request</string>
     <string name="request_permission_all">request all</string>
     <string name="open_permission_setting">setting</string>

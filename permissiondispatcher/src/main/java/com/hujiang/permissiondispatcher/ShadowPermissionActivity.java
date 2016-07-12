@@ -12,8 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.WindowManager;
 
@@ -28,7 +28,7 @@ import java.util.List;
  * @author simon
  * @since 2016-05-15
  */
-public class ShadowPermissionActivity extends AppCompatActivity {
+public class ShadowPermissionActivity extends FragmentActivity {
 
     public static final int REQ_CODE_PERMISSION_REQUEST = 110;
     public static final int REQ_CODE_REQUEST_SETTING = 119;
@@ -106,7 +106,6 @@ public class ShadowPermissionActivity extends AppCompatActivity {
         } else {
             onNewIntent(getIntent());
         }
-
     }
 
     @Override
