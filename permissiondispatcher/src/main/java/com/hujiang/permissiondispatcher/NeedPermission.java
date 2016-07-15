@@ -34,10 +34,23 @@ public @interface NeedPermission {
     String rationalMessage() default "";
 
     /**
+     * 合理性解释文本资源ID
+     * @return
+     */
+    int rationalMsgResId() default 0;
+
+
+    /**
      * 合理性解释按钮文本
      * @return 合理性解释按钮文本
      */
     String rationalButton() default "";
+
+    /**
+     * 合理性解释按钮文本资源ID
+     * @return
+     */
+    int rationalBtnResId() default 0;
 
     /**
      * 权限禁止文本内容
@@ -46,16 +59,40 @@ public @interface NeedPermission {
     String deniedMessage() default "";
 
     /**
+     * 权限禁止文本资源ID
+     * @return
+     */
+    int deniedMsgResId() default 0;
+
+    /**
      * 权限禁止按钮文本
      * @return 权限禁止按钮文本
      */
     String deniedButton() default "";
 
     /**
+     * 权限禁止按钮文本资源ID
+     * @return
+     */
+    int deniedBtnResId() default 0;
+
+    /**
+     * app设置按钮文本
+     * @return
+     */
+    String settingText() default "";
+
+    /**
+     * app设置按钮文本资源ID
+     * @return
+     */
+    int settingResId() default 0;
+
+    /**
      * 是否显示跳转到应用权限设置界面
      * @return 是否显示跳转到应用权限设置界面
      */
-    boolean needGotoSetting() default false;
+    boolean needGotoSetting() default true;
 
     /**
      * 是否无视权限，程序正常往下走

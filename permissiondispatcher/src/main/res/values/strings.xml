@@ -3,4 +3,6 @@
     <string name="permission_close">确定</string>
     <string name="permission_cancel">取消</string>
     <string name="permission_setting">设置</string>
+    <string name="permission_denied_msg_default">可以到app设置界面开启权限</string>
+
 </resources>

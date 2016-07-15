@@ -26,6 +26,7 @@ public class CheckPermission {
     private String   mDeniedCloseButtonText;
 
     private boolean  mHasSettingBtn = false;
+    private String mSettingText;
 
     public CheckPermission(Context context) {
         this.mContext = context;
@@ -154,6 +155,10 @@ public class CheckPermission {
         return this;
     }
 
+    public CheckPermission setSettingButtonText(String settingButtonText) {
+        mSettingText = settingButtonText;
+        return this;
+    }
 
     // requestPermissions
     public void check(PermissionListener permissionListener) {
@@ -185,6 +190,7 @@ public class CheckPermission {
                 , mRationaleMessage
                 , mRationaleConfirmText
                 , mHasSettingBtn
+                , mSettingText
                 , mDenyMessage
                 , mDeniedCloseButtonText
                 , permissionListener);

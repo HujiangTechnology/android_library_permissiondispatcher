@@ -15,7 +15,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +84,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
      * @param permissionListener permission listener
      */
     public static void start(Context context, String[] permissions, String rationalMessage, String rationalButton, boolean needSettingButton
-        , String deniedMessage, String deniedButton, PermissionListener permissionListener) {
+        , String settingTxt, String deniedMessage, String deniedButton, PermissionListener permissionListener) {
         setPermissionListener(permissionListener);
 
         Intent intent = new Intent(context, ShadowPermissionActivity.class);
@@ -90,6 +92,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
         intent.putExtra(ShadowPermissionActivity.EXTRA_RATIONALE_MESSAGE, rationalMessage);
         intent.putExtra(ShadowPermissionActivity.EXTRA_RATIONALE_CONFIRM_TEXT, rationalButton);
         intent.putExtra(ShadowPermissionActivity.EXTRA_SETTING_BUTTON, needSettingButton);
+        intent.putExtra(ShadowPermissionActivity.EXTRA_SETTING_BUTTON_TEXT, settingTxt);
         intent.putExtra(ShadowPermissionActivity.EXTRA_DENY_MESSAGE, deniedMessage);
         intent.putExtra(ShadowPermissionActivity.EXTRA_DENIED_DIALOG_CLOSE_TEXT, deniedButton);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -112,11 +115,12 @@ public class ShadowPermissionActivity extends FragmentActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
+        packageName = getPackageName();
+
         Bundle bundle = getIntent().getExtras();
         permissions = bundle.getStringArray(EXTRA_PERMISSIONS);
         rationale_message = bundle.getString(EXTRA_RATIONALE_MESSAGE);
         denyMessage = bundle.getString(EXTRA_DENY_MESSAGE);
-        packageName = getPackageName();
         hasSettingButton = bundle.getBoolean(EXTRA_SETTING_BUTTON, false);
         settingButtonText = bundle.getString(EXTRA_SETTING_BUTTON_TEXT, getString(R.string.permission_setting));
         rationaleConfirmText = bundle.getString(EXTRA_RATIONALE_CONFIRM_TEXT, getString(R.string.permission_ok));
@@ -146,7 +150,8 @@ public class ShadowPermissionActivity extends FragmentActivity {
         outState.putString(EXTRA_DENY_MESSAGE, denyMessage);
         outState.putString(EXTRA_PACKAGE_NAME, packageName);
         outState.putBoolean(EXTRA_SETTING_BUTTON, hasSettingButton);
-        outState.putString(EXTRA_SETTING_BUTTON, deniedCloseButtonText);
+        outState.putString(EXTRA_SETTING_BUTTON_TEXT, settingButtonText);
+        outState.putString(EXTRA_SETTING_BUTTON_TEXT, deniedCloseButtonText);
         outState.putString(EXTRA_RATIONALE_CONFIRM_TEXT, rationaleConfirmText);
 
         super.onSaveInstanceState(outState);
@@ -211,20 +216,17 @@ public class ShadowPermissionActivity extends FragmentActivity {
     public void requestPermissions(List<String> needPermissions) {
         //first SYSTEM_ALERT_WINDOW
         if (!hasRequestedSystemAlertWindow && !TextUtils.isEmpty(permissionSystemAlertWindow)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + packageName));
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + packageName));
             startActivityForResult(intent, REQ_CODE_REQUEST_SYSTEM_ALERT_WINDOW);
         } else if (!hasRequestedWriteSettings && !TextUtils.isEmpty(permissionWriteSettings)) {
             //second WRITE_SETTINGS
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                    Uri.parse("package:" + packageName));
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + packageName));
             startActivityForResult(intent, REQ_CODE_REQUEST_WRITE_SETTING);
         }else{
             //other permission
             ActivityCompat.requestPermissions(this, needPermissions.toArray(new String[needPermissions.size()]), REQ_CODE_PERMISSION_REQUEST);
         }
     }
-
 
 
     @Override
@@ -260,11 +262,14 @@ public class ShadowPermissionActivity extends FragmentActivity {
 
     public void showPermissionDenyDialog(final ArrayList<String> deniedPermissions) {
 
-        if (TextUtils.isEmpty(denyMessage)) {
+        if (!hasSettingButton && TextUtils.isEmpty(denyMessage)) {
             // denyMessage
             permissionDenied(deniedPermissions);
             return;
         }
+
+        denyMessage = TextUtils.isEmpty(denyMessage) ? getString(R.string.permission_denied_msg_default) : denyMessage;
+        deniedCloseButtonText = TextUtils.isEmpty(deniedCloseButtonText) ? getString(R.string.permission_close) : deniedCloseButtonText;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(denyMessage)
@@ -283,8 +288,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
                 public void onClick(DialogInterface dialog, int which) {
 
                     try {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                .setData(Uri.parse("package:" + packageName));
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + packageName));
                         startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
                     } catch (ActivityNotFoundException e) {
                         e.printStackTrace();
@@ -298,7 +302,6 @@ public class ShadowPermissionActivity extends FragmentActivity {
         }
         builder.show();
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
