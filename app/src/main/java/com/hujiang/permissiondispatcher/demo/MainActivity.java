@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setRationaleMsg("我们需要使用你的摄像头")
                         .setRationaleConfirmText("Request Camera Permission")
                         .setDeniedMsg("The Camera Permission Denied")
-                        .setGotoSettingButton(true)
+                        .setGotoSettingButton(false)
                         .check(new PermissionListener() {
                             @Override
                             public void permissionGranted() {

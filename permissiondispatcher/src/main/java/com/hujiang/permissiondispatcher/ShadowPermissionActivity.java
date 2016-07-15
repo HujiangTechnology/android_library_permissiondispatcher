@@ -261,15 +261,15 @@ public class ShadowPermissionActivity extends FragmentActivity {
     }
 
     public void showPermissionDenyDialog(final ArrayList<String> deniedPermissions) {
+        denyMessage = TextUtils.isEmpty(denyMessage) ? getString(R.string.permission_denied_msg_default) : denyMessage;
+        deniedCloseButtonText = TextUtils.isEmpty(deniedCloseButtonText) ? getString(R.string.permission_close) : deniedCloseButtonText;
 
-        if (!hasSettingButton && TextUtils.isEmpty(denyMessage)) {
+        if (!hasSettingButton) {
             // denyMessage
+            Toast.makeText(ShadowPermissionActivity.this, denyMessage, Toast.LENGTH_LONG).show();
             permissionDenied(deniedPermissions);
             return;
         }
-
-        denyMessage = TextUtils.isEmpty(denyMessage) ? getString(R.string.permission_denied_msg_default) : denyMessage;
-        deniedCloseButtonText = TextUtils.isEmpty(deniedCloseButtonText) ? getString(R.string.permission_close) : deniedCloseButtonText;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(denyMessage)
@@ -279,27 +279,23 @@ public class ShadowPermissionActivity extends FragmentActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         permissionDenied(deniedPermissions);
                     }
-                });
+                }).setPositiveButton(settingButtonText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
 
-        if (hasSettingButton) {
-
-            builder.setPositiveButton(settingButtonText, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                    try {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + packageName));
-                        startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
-                    } catch (ActivityNotFoundException e) {
-                        e.printStackTrace();
-                        Intent intent = new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS);
-                        startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
-                    }
-
+                try {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + packageName));
+                    startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
+                } catch (ActivityNotFoundException e) {
+                    e.printStackTrace();
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS);
+                    startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
                 }
-            });
 
-        }
+            }
+        });
+
+
         builder.show();
     }
 

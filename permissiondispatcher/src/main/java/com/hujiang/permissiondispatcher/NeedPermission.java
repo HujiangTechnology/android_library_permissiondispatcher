@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * to mark the class type or method that needs runtime permissions
+ * to mark the class type or method that needs runtime permissions.Just used on Activity class, and all void returned methods of any class.
  *
  * @author simon
  * @version 1.0.0
