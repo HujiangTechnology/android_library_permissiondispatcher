@@ -92,7 +92,7 @@ public @interface NeedPermission {
      * 是否显示跳转到应用权限设置界面
      * @return 是否显示跳转到应用权限设置界面
      */
-    boolean needGotoSetting() default true;
+    boolean needGotoSetting() default false;
 
     /**
      * 是否无视权限，程序正常往下走
