@@ -4,5 +4,5 @@
     <string name="permission_close">Close</string>
     <string name="permission_cancel">Cancel</string>
     <string name="permission_setting">Setting</string>
-    <string name="permission_denied_msg_default">permissions can be granted in the app‘s setting</string>
+    <string name="permission_denied_msg_default">Permissions can be granted in the app‘s setting</string>
 </resources>
