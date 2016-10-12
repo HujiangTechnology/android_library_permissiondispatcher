@@ -19,43 +19,24 @@ com.hujiang.permissiondispatcher:permissiondispatcher:1.0.2
 
 ```
 
- CheckPermission.from(this)
-                .setPermissions(dangerousPermissionCamera)
-                .setRationaleMsg("I need your camera to xxx")
-                .setRationaleConfirmText("Request Camera Permission")
-                .setDeniedMsg("The Camera Permission Denied")
-                .check(new PermissionListener() {
+ CheckPermission.instance(context)
+                .check(permissionItem, new PermissionListener() {
                             @Override
                             public void permissionGranted() {
-                                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
+                                //授权成功，执行正常的业务逻辑
                             }
 
                             @Override
                             public void permissionDenied() {
-                                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
+                                //授权失败，给用户友好提示
                             }
                         });
 ```
 
 * @NeedPermission
 
-用于标识类，方法需要哪些权限
+`待完善...`
 
-```
-
-//用户Activity 类
-@NeedPermission(permissions = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS})
-public class MainActivity extents Activity {
-}
-
-//用户Activity 或者Fragment的内部方法
- @NeedPermission(permissions = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS})
-    private void startBActivity(String name, long id) {
-    }
-
-```
 ### [CHANGELOG](CHANGELOG.md)
 
 ### License
