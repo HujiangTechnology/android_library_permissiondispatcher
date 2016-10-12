@@ -10,6 +10,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +24,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * to dispatcher permission
@@ -37,17 +43,15 @@ public class ShadowPermissionActivity extends FragmentActivity {
     public static final int REQ_CODE_REQUEST_SYSTEM_ALERT_WINDOW = 120;
     public static final int REQ_CODE_REQUEST_WRITE_SETTING = 121;
 
-
     public static final String EXTRA_PERMISSIONS = "permissions";
     public static final String EXTRA_RATIONALE_MESSAGE = "rationale_message";
     public static final String EXTRA_DENY_MESSAGE = "deny_message";
-    public static final String EXTRA_PACKAGE_NAME = "package_name";
     public static final String EXTRA_SETTING_BUTTON = "setting_button";
     public static final String EXTRA_SETTING_BUTTON_TEXT = "setting_button_text";
     public static final String EXTRA_RATIONALE_CONFIRM_TEXT = "rationale_confirm_text";
     public static final String EXTRA_DENIED_DIALOG_CLOSE_TEXT = "denied_dialog_close_text";
 
-    String rationale_message;
+    String rationaleMessage;
     String denyMessage;
     String[] permissions;
     boolean hasRequestedSystemAlertWindow = false;
@@ -62,14 +66,15 @@ public class ShadowPermissionActivity extends FragmentActivity {
     String deniedCloseButtonText;
     String rationaleConfirmText;
 
-    public static PermissionListener mPermissionListener;
+    private static onPermissionRequestFinishedListener sOnPermissionRequestFinishedListener;
+    private static PermissionListener sPermissionListener;
 
-    public static PermissionListener getPermissionListener() {
-        return mPermissionListener;
+    public static void setOnPermissionRequestFinishedListener(onPermissionRequestFinishedListener listener) {
+        sOnPermissionRequestFinishedListener = listener;
     }
 
-    public static void setPermissionListener(PermissionListener permissionListener) {
-        ShadowPermissionActivity.mPermissionListener = permissionListener;
+    private static void setPermissionListener(PermissionListener permissionListener) {
+        sPermissionListener = permissionListener;
     }
 
     /**
@@ -104,22 +109,22 @@ public class ShadowPermissionActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        if (savedInstanceState != null) {
-            setupFromSavedInstanceState(savedInstanceState);
-        } else {
-            onNewIntent(getIntent());
-        }
+
+        onNewIntent(getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if (intent != null) {
+            setIntent(intent);
+        }
 
         packageName = getPackageName();
 
         Bundle bundle = getIntent().getExtras();
         permissions = bundle.getStringArray(EXTRA_PERMISSIONS);
-        rationale_message = bundle.getString(EXTRA_RATIONALE_MESSAGE);
+        rationaleMessage = bundle.getString(EXTRA_RATIONALE_MESSAGE);
         denyMessage = bundle.getString(EXTRA_DENY_MESSAGE);
         hasSettingButton = bundle.getBoolean(EXTRA_SETTING_BUTTON, false);
         settingButtonText = bundle.getString(EXTRA_SETTING_BUTTON_TEXT, getString(R.string.permission_setting));
@@ -129,57 +134,40 @@ public class ShadowPermissionActivity extends FragmentActivity {
         checkPermissions(false);
     }
 
-    private void setupFromSavedInstanceState(Bundle savedInstanceState) {
-        permissions = savedInstanceState.getStringArray(EXTRA_PERMISSIONS);
-        rationale_message = savedInstanceState.getString(EXTRA_RATIONALE_MESSAGE);
-        denyMessage = savedInstanceState.getString(EXTRA_DENY_MESSAGE);
-        packageName = savedInstanceState.getString(EXTRA_PACKAGE_NAME);
-
-        hasSettingButton = savedInstanceState.getBoolean(EXTRA_SETTING_BUTTON, true);
-        settingButtonText = savedInstanceState.getString(EXTRA_SETTING_BUTTON_TEXT, getString(R.string.permission_setting));
-
-        rationaleConfirmText = savedInstanceState.getString(EXTRA_RATIONALE_CONFIRM_TEXT);
-        deniedCloseButtonText = savedInstanceState.getString(EXTRA_DENIED_DIALOG_CLOSE_TEXT);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-
-        outState.putStringArray(EXTRA_PERMISSIONS, permissions);
-        outState.putString(EXTRA_RATIONALE_MESSAGE, rationale_message);
-        outState.putString(EXTRA_DENY_MESSAGE, denyMessage);
-        outState.putString(EXTRA_PACKAGE_NAME, packageName);
-        outState.putBoolean(EXTRA_SETTING_BUTTON, hasSettingButton);
-        outState.putString(EXTRA_SETTING_BUTTON_TEXT, settingButtonText);
-        outState.putString(EXTRA_SETTING_BUTTON_TEXT, deniedCloseButtonText);
-        outState.putString(EXTRA_RATIONALE_CONFIRM_TEXT, rationaleConfirmText);
-
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-    }
-
     private void permissionGranted() {
-        if(mPermissionListener != null){
-            mPermissionListener.permissionGranted();
-            mPermissionListener = null;
+        if(sPermissionListener != null) {
+            sPermissionListener.permissionGranted();
+            sPermissionListener = null;
         }
-        finish();
-        overridePendingTransition(0, 0);
+
+        if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
+            finish();
+            overridePendingTransition(0, 0);
+        }
     }
 
     private void permissionDenied(List<String> deniedpermissions) {
-        if(mPermissionListener != null){
-            mPermissionListener.permissionDenied();
-            mPermissionListener = null;
+        if(sPermissionListener != null){
+            sPermissionListener.permissionDenied();
+            sPermissionListener = null;
         }
-        finish();
-        overridePendingTransition(0, 0);
+
+        if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
+            finish();
+            overridePendingTransition(0, 0);
+        }
     }
 
+    private void gotoSetting() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + packageName));
+            startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS);
+            startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
+        }
+    }
 
     private void checkPermissions(boolean isAllRequested) {
 
@@ -203,7 +191,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
         } else if (isAllRequested) {
             //From Setting Activity
             permissionDenied(needPermissions);
-        } else if (showRationale && !TextUtils.isEmpty(rationale_message)) {
+        } else if (showRationale && !TextUtils.isEmpty(rationaleMessage)) {
             //Need Show Rationale
             showRationaleDialog(needPermissions);
         } else {
@@ -235,6 +223,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
 
         for (int i = 0; i < permissions.length; i++) {
             String permission = permissions[i];
+
             if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                 deniedPermissions.add(permission);
             }
@@ -249,13 +238,12 @@ public class ShadowPermissionActivity extends FragmentActivity {
 
     private void showRationaleDialog(final List<String> needPermissions) {
         new AlertDialog.Builder(this)
-                .setMessage(rationale_message)
+                .setMessage(rationaleMessage)
                 .setCancelable(false)
                 .setNegativeButton(rationaleConfirmText, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         requestPermissions(needPermissions);
-
                     }
                 }).show();
     }
@@ -282,16 +270,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
                 }).setPositiveButton(settingButtonText, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
-                try {
-                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + packageName));
-                    startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
-                } catch (ActivityNotFoundException e) {
-                    e.printStackTrace();
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS);
-                    startActivityForResult(intent, REQ_CODE_REQUEST_SETTING);
-                }
-
+              gotoSetting();
             }
         });
 
@@ -319,6 +298,45 @@ public class ShadowPermissionActivity extends FragmentActivity {
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private boolean isPermissionsEqual(String[] permissions1, String[] permissions2) {
+        if (permissions1 == null || permissions2 == null) {
+            return false;
+        }
+
+        if (permissions1.length != permissions2.length) {
+            return false;
+        }
+
+        boolean isEqual;
+        for (String p1 : permissions1) {
+            boolean isp1Found = false;
+            for (String p2 : permissions2) {
+                if (TextUtils.equals(p1, p2)) {
+                    isp1Found = true;
+                    break;
+                }
+            }
+            isEqual = isp1Found;
+            if (!isEqual) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 权限请求结束的回调
+     */
+    static interface onPermissionRequestFinishedListener {
+        /**
+         *
+         * @param permissions 已经处理完的权限申请
+         * @return 是否还有其他未处理的权限
+         */
+        public boolean onPermissionRequestFinishedAndCheckNext(String[] permissions);
     }
 
 }

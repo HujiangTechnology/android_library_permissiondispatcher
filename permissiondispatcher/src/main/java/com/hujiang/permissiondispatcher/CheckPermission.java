@@ -3,8 +3,11 @@ package com.hujiang.permissiondispatcher;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 
 import java.security.acl.Permission;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * check permission
@@ -16,184 +19,88 @@ import java.security.acl.Permission;
  */
 public class CheckPermission {
     private static final String TAG = "CheckPermission";
+
+    private static CheckPermission sInstance;
     private final Context mContext;
+    private PermissionRequestWrapper mCurPermissionRequestWrapper;
+    private Queue<PermissionRequestWrapper> mPermissionRequestWrappers = new ConcurrentLinkedQueue<>();
 
-    private String[] mPermissions;
-    private String   mRationaleConfirmText;
-    private String   mRationaleMessage;
-
-    private String   mDenyMessage;
-    private String   mDeniedCloseButtonText;
-
-    private boolean  mHasSettingBtn = false;
-    private String mSettingText;
-
-    public CheckPermission(Context context) {
-        this.mContext = context;
-    }
-
-    public static CheckPermission from(Context context) {
-        return new CheckPermission(context);
-    }
-
-    /**
-     * ask for permissions
-     * @param permissions
-     * @return
-     */
-    public CheckPermission setPermissions(String... permissions) {
-        this.mPermissions = permissions;
-        return this;
-    }
-
-    /**
-     * explain to the user why your app wants the permissions
-     * @param rationaleMessage
-     * @return
-     */
-
-    public CheckPermission setRationaleMsg(String rationaleMessage) {
-        this.mRationaleMessage = rationaleMessage;
-        return this;
-    }
-
-    /**
-     * explain to the user why your app wants the permissions
-     * @param stringRes
-     * @return
-     */
-    public CheckPermission setRationaleMsg(@StringRes int stringRes) {
-        if (stringRes <= 0) {
-            throw new IllegalArgumentException("Invalid value for RationaleMessage");
-        }
-        this.mRationaleMessage = mContext.getString(stringRes);
-        return this;
-    }
-
-    /**
-     * The text to display in the positive button of rationale message dialog
-     * @param rationaleConfirmText
-     * @return
-     */
-    public CheckPermission setRationaleConfirmText(String rationaleConfirmText) {
-
-        this.mRationaleConfirmText = rationaleConfirmText;
-        return this;
-    }
-    /**
-     * The text to display in the positive button of rationale message dialog
-     * @param stringRes
-     * @return
-     */
-    public CheckPermission setRationaleConfirmText(@StringRes int stringRes) {
-
-        if (stringRes <= 0) {
-            throw new IllegalArgumentException("Invalid value for RationaleConfirmText");
-        }
-        this.mRationaleConfirmText = mContext.getString(stringRes);
-
-        return this;
-    }
-
-
-    /**
-     * when user deny permission, show deny message
-     * @param denyMessage
-     * @return
-     */
-    public CheckPermission setDeniedMsg(String denyMessage) {
-        this.mDenyMessage = denyMessage;
-        return this;
-    }
-    /**
-     * when user deny permission, show deny message
-     * @param stringRes
-     * @return
-     */
-    public CheckPermission setDeniedMsg(@StringRes int stringRes) {
-        if (stringRes <= 0) {
-            throw new IllegalArgumentException("Invalid value for DeniedMessage");
-        }
-        this.mDenyMessage = mContext.getString(stringRes);
-        return this;
-    }
-
-
-    /**
-     * The text to display in the close button of deny message dialog
-     * @param stringRes
-     * @return
-     */
-    public CheckPermission setDeniedCloseButtonText(@StringRes int stringRes) {
-
-        if (stringRes <= 0) {
-            throw new IllegalArgumentException("Invalid value for DeniedCloseButtonText");
-        }
-        this.mDeniedCloseButtonText = mContext.getString(stringRes);
-
-        return this;
-    }
-    /**
-     * The text to display in the close button of deny message dialog
-     * @param deniedCloseButtonText
-     * @return
-     */
-    public CheckPermission setDeniedCloseButtonText(String deniedCloseButtonText) {
-
-        this.mDeniedCloseButtonText = deniedCloseButtonText;
-        return this;
-    }
-
-    /**
-     * when user deny permission,show the setting button
-     * @param hasSettingBtn
-     * @return
-     */
-    public CheckPermission setGotoSettingButton(boolean hasSettingBtn) {
-
-        this.mHasSettingBtn = hasSettingBtn;
-        return this;
-    }
-
-    public CheckPermission setSettingButtonText(String settingButtonText) {
-        mSettingText = settingButtonText;
-        return this;
-    }
-
-    // requestPermissions
-    public void check(PermissionListener permissionListener) {
-
-        if (permissionListener == null) {
-            throw new NullPointerException("You must setPermissionListener() on CheckPermission");
+    public static CheckPermission instance(Context context) {
+        if (sInstance == null) {
+            synchronized (CheckPermission.class) {
+                if (sInstance == null) {
+                    sInstance = new CheckPermission(context);
+                }
+            }
         }
 
-        if (mPermissions == null || mPermissions.length == 0) {
-            throw new NullPointerException("You must setPermissions() on CheckPermission");
+        return sInstance;
+    }
+
+    private CheckPermission(Context context) {
+        this.mContext = context.getApplicationContext();
+
+        ShadowPermissionActivity.setOnPermissionRequestFinishedListener(new ShadowPermissionActivity.onPermissionRequestFinishedListener() {
+            @Override
+            public boolean onPermissionRequestFinishedAndCheckNext(String[] permissions) {
+                mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
+
+                if (mCurPermissionRequestWrapper != null) {
+                    requestPermissions(mCurPermissionRequestWrapper);
+                }
+
+                return mCurPermissionRequestWrapper != null;
+            }
+        });
+    }
+
+    public void check(PermissionItem permissionItem, PermissionListener permissionListener) {
+        if (permissionItem == null || permissionListener == null) {
+            return;
         }
 
         if (!PermissionUtils.isOverMarshmallow()) {
             if (permissionListener != null) {
                 permissionListener.permissionGranted();
             }
-        } else if (!PermissionUtils.hasSelfPermissions(mContext, mPermissions)) {
-            requestPermissions(permissionListener);
-        } else {
+        } else if (PermissionUtils.hasSelfPermissions(mContext, permissionItem.permissions)) {
             if (permissionListener != null) {
                 permissionListener.permissionGranted();
+            }
+        } else {
+
+            mPermissionRequestWrappers.add(new PermissionRequestWrapper(permissionItem, permissionListener));
+
+            if (mCurPermissionRequestWrapper == null) {
+                mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
+                requestPermissions(mCurPermissionRequestWrapper);
             }
         }
     }
 
-    private void requestPermissions(PermissionListener permissionListener) {
+    private void requestPermissions(PermissionRequestWrapper permissionRequestWrapper) {
+        PermissionItem item = permissionRequestWrapper.permissionItem;
+        PermissionListener listener = permissionRequestWrapper.permissionListener;
+
         ShadowPermissionActivity.start(mContext
-                , mPermissions
-                , mRationaleMessage
-                , mRationaleConfirmText
-                , mHasSettingBtn
-                , mSettingText
-                , mDenyMessage
-                , mDeniedCloseButtonText
-                , permissionListener);
+                , item.permissions
+                , item.rationalMessage
+                , item.rationalButton
+                , item.needGotoSetting
+                , item.settingText
+                , item.deniedMessage
+                , item.deniedButton
+                , listener);
+    }
+
+    class PermissionRequestWrapper {
+        PermissionItem permissionItem;
+        PermissionListener permissionListener;
+
+        public PermissionRequestWrapper(PermissionItem item, PermissionListener listener) {
+            this.permissionItem = item;
+            this.permissionListener = listener;
+        }
     }
 
 }
