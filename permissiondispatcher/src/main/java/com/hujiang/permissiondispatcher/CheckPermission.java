@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 
+import junit.framework.Assert;
+
 import java.security.acl.Permission;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -24,6 +27,18 @@ public class CheckPermission {
     private final Context mContext;
     private PermissionRequestWrapper mCurPermissionRequestWrapper;
     private Queue<PermissionRequestWrapper> mPermissionRequestWrappers = new ConcurrentLinkedQueue<>();
+    private ShadowPermissionActivity.OnPermissionRequestFinishedListener mOnPermissionRequestFinishedListener = new ShadowPermissionActivity.OnPermissionRequestFinishedListener() {
+        @Override
+        public boolean onPermissionRequestFinishedAndCheckNext(String[] permissions) {
+            mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
+
+            if (mCurPermissionRequestWrapper != null) {
+                requestPermissions(mCurPermissionRequestWrapper);
+            }
+
+            return mCurPermissionRequestWrapper != null;
+        }
+    };
 
     public static CheckPermission instance(Context context) {
         if (sInstance == null) {
@@ -40,18 +55,7 @@ public class CheckPermission {
     private CheckPermission(Context context) {
         this.mContext = context.getApplicationContext();
 
-        ShadowPermissionActivity.setOnPermissionRequestFinishedListener(new ShadowPermissionActivity.onPermissionRequestFinishedListener() {
-            @Override
-            public boolean onPermissionRequestFinishedAndCheckNext(String[] permissions) {
-                mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
-
-                if (mCurPermissionRequestWrapper != null) {
-                    requestPermissions(mCurPermissionRequestWrapper);
-                }
-
-                return mCurPermissionRequestWrapper != null;
-            }
-        });
+        ShadowPermissionActivity.setOnPermissionRequestFinishedListener(mOnPermissionRequestFinishedListener);
     }
 
     public void check(PermissionItem permissionItem, PermissionListener permissionListener) {
@@ -60,17 +64,9 @@ public class CheckPermission {
         }
 
         if (!PermissionUtils.isOverMarshmallow()) {
-            if (permissionListener != null) {
-                permissionListener.permissionGranted();
-            }
-        } else if (PermissionUtils.hasSelfPermissions(mContext, permissionItem.permissions)) {
-            if (permissionListener != null) {
-                permissionListener.permissionGranted();
-            }
+            onPermissionGranted(permissionItem, permissionListener);
         } else {
-
             mPermissionRequestWrappers.add(new PermissionRequestWrapper(permissionItem, permissionListener));
-
             if (mCurPermissionRequestWrapper == null) {
                 mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
                 requestPermissions(mCurPermissionRequestWrapper);
@@ -82,15 +78,39 @@ public class CheckPermission {
         PermissionItem item = permissionRequestWrapper.permissionItem;
         PermissionListener listener = permissionRequestWrapper.permissionListener;
 
-        ShadowPermissionActivity.start(mContext
-                , item.permissions
-                , item.rationalMessage
-                , item.rationalButton
-                , item.needGotoSetting
-                , item.settingText
-                , item.deniedMessage
-                , item.deniedButton
-                , listener);
+        if (PermissionUtils.hasSelfPermissions(mContext, item.permissions)) {
+            onPermissionGranted(item, listener);
+        } else {
+            ShadowPermissionActivity.start(mContext
+                    , item.permissions
+                    , item.rationalMessage
+                    , item.rationalButton
+                    , item.needGotoSetting
+                    , item.settingText
+                    , item.deniedMessage
+                    , item.deniedButton
+                    , listener);
+        }
+    }
+
+    private void onPermissionGranted(PermissionItem item, PermissionListener listener) {
+        Assert.assertNotNull(item);
+
+        if (listener != null) {
+            listener.permissionGranted();
+        }
+
+        mOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(item.permissions);
+    }
+
+    private void onPermissionDenied(PermissionItem item, PermissionListener listener) {
+        Assert.assertNotNull(item);
+
+        if (listener != null) {
+            listener.permissionDenied();
+        }
+
+        mOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(item.permissions);
     }
 
     class PermissionRequestWrapper {

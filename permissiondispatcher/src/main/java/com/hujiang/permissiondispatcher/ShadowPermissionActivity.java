@@ -66,10 +66,10 @@ public class ShadowPermissionActivity extends FragmentActivity {
     String deniedCloseButtonText;
     String rationaleConfirmText;
 
-    private static onPermissionRequestFinishedListener sOnPermissionRequestFinishedListener;
+    private static OnPermissionRequestFinishedListener sOnPermissionRequestFinishedListener;
     private static PermissionListener sPermissionListener;
 
-    public static void setOnPermissionRequestFinishedListener(onPermissionRequestFinishedListener listener) {
+    public static void setOnPermissionRequestFinishedListener(OnPermissionRequestFinishedListener listener) {
         sOnPermissionRequestFinishedListener = listener;
     }
 
@@ -140,6 +140,10 @@ public class ShadowPermissionActivity extends FragmentActivity {
             sPermissionListener = null;
         }
 
+        Log.i("permissiondispatcher", "------------------permissionGranted--------------");
+        for (String p : permissions) {
+            Log.i("permissiondispatcher", p);
+        }
         if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
             finish();
             overridePendingTransition(0, 0);
@@ -150,6 +154,11 @@ public class ShadowPermissionActivity extends FragmentActivity {
         if(sPermissionListener != null){
             sPermissionListener.permissionDenied();
             sPermissionListener = null;
+        }
+
+        Log.i("permissiondispatcher", "------------------permissionDenied--------------");
+        for (String p : permissions) {
+            Log.i("permissiondispatcher", p);
         }
 
         if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
@@ -330,7 +339,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
     /**
      * 权限请求结束的回调
      */
-    static interface onPermissionRequestFinishedListener {
+    public static interface OnPermissionRequestFinishedListener {
         /**
          *
          * @param permissions 已经处理完的权限申请
