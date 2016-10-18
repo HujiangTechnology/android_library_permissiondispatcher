@@ -140,10 +140,6 @@ public class ShadowPermissionActivity extends FragmentActivity {
             sPermissionListener = null;
         }
 
-        Log.i("permissiondispatcher", "------------------permissionGranted--------------");
-        for (String p : permissions) {
-            Log.i("permissiondispatcher", p);
-        }
         if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
             finish();
             overridePendingTransition(0, 0);
@@ -154,11 +150,6 @@ public class ShadowPermissionActivity extends FragmentActivity {
         if(sPermissionListener != null){
             sPermissionListener.permissionDenied();
             sPermissionListener = null;
-        }
-
-        Log.i("permissiondispatcher", "------------------permissionDenied--------------");
-        for (String p : permissions) {
-            Log.i("permissiondispatcher", p);
         }
 
         if (sOnPermissionRequestFinishedListener == null || !sOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(permissions)) {
@@ -249,7 +240,7 @@ public class ShadowPermissionActivity extends FragmentActivity {
         new AlertDialog.Builder(this)
                 .setMessage(rationaleMessage)
                 .setCancelable(false)
-                .setNegativeButton(rationaleConfirmText, new DialogInterface.OnClickListener() {
+                .setPositiveButton(rationaleConfirmText, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         requestPermissions(needPermissions);

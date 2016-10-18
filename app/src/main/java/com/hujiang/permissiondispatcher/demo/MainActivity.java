@@ -3,10 +3,13 @@ package com.hujiang.permissiondispatcher.demo;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 
 import com.hujiang.permissiondispatcher.CheckPermission;
 import com.hujiang.permissiondispatcher.NeedPermission;
+import com.hujiang.permissiondispatcher.PermissionItem;
 import com.hujiang.permissiondispatcher.PermissionListener;
 import com.hujiang.permissiondispatcher.PermissionUtils;
 
@@ -58,13 +62,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_request_permission_system).setOnClickListener(this);
         findViewById(R.id.btn_open_permission_setting).setOnClickListener(this);
         findViewById(R.id.btn_open_battery_optimization_settings).setOnClickListener(this);
+        findViewById(R.id.btn_start_b_activity).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startB();
+            }
+        });
 
         updatePermissionStatus();
 
-        SwipeRefreshLayout swipeRefreshLayout;
     }
 
+    private void startB() {
+        CheckPermission.instance(this).check(new PermissionItem(Manifest.permission.READ_CALL_LOG), new PermissionListener() {
+            @Override
+            public void permissionGranted() {
+                startActivity(new Intent(MainActivity.this, BActivity.class));
+            }
 
+            @Override
+            public void permissionDenied() {
+
+            }
+        });
+    }
 
     @SuppressWarnings("deprecation")
     private void updatePermissionStatus() {
@@ -91,101 +112,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = v.getId();
         switch (id) {
             case R.id.btn_request_permission_all:
-                CheckPermission
-                        .from(this)
-                        .setPermissions(dangerousPermissionCamera[0], dangerousPermissionLocation[0],systemAlertWindowPermission[0], systemAlertWindowPermission[0])
-                        .setRationaleConfirmText("request all permission")
-                        .setDeniedMsg("the permission denied")
-                        .check(new PermissionListener() {
-                            @Override
-                            public void permissionGranted() {
-                                Toast.makeText(MainActivity.this, "all permission granted", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-
-                            @Override
-                            public void permissionDenied() {
-                                Toast.makeText(MainActivity.this, "permission denied.", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-                        });
                 break;
             case R.id.btn_request_permission_camera:
-                CheckPermission
-                        .from(getApplicationContext())
-                        .setPermissions(dangerousPermissionCamera)
-                        .setRationaleMsg("我们需要使用你的摄像头")
-                        .setRationaleConfirmText("Request Camera Permission")
-                        .setDeniedMsg("The Camera Permission Denied")
-                        .setGotoSettingButton(false)
-                        .check(new PermissionListener() {
-                            @Override
-                            public void permissionGranted() {
-                                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-
-                            @Override
-                            public void permissionDenied() {
-                                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-                        });
                 break;
             case R.id.btn_request_permission_location:
-                CheckPermission
-                        .from(this)
-                        .check(new PermissionListener() {
-                            @Override
-                            public void permissionGranted() {
-                                updatePermissionStatus();
-                            }
-
-                            @Override
-                            public void permissionDenied() {
-                                updatePermissionStatus();
-                            }
-                        });
                 break;
             case R.id.btn_request_permission_system:
-                CheckPermission
-                        .from(this)
-                        .setPermissions(systemAlertWindowPermission)
-                        .setRationaleConfirmText("Request SYSTEM_ALERT_WINDOW")
-                        .setDeniedMsg("The SYSTEM_ALERT_WINDOW Denied")
-                        .check(new PermissionListener() {
-                            @Override
-                            public void permissionGranted() {
-                                Toast.makeText(MainActivity.this, "SYSTEM_ALERT_WINDOW Permission Granted", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-
-                            @Override
-                            public void permissionDenied() {
-                                Toast.makeText(MainActivity.this, "SYSTEM_ALERT_WINDOW Permission Denied", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-                        });
                 break;
             case R.id.btn_request_permission_internet:
-                CheckPermission
-                        .from(this)
-                        .setPermissions(normalPermission)
-                        .setRationaleConfirmText("Request INTERNET")
-                        .setDeniedMsg("The INTERNET Denied")
-                        .check(new PermissionListener() {
-                            @Override
-                            public void permissionGranted() {
-                                Toast.makeText(MainActivity.this, "INTERNET Permission Granted", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-
-                            @Override
-                            public void permissionDenied() {
-                                Toast.makeText(MainActivity.this, "INTERNET Permission Denied", Toast.LENGTH_SHORT).show();
-                                updatePermissionStatus();
-                            }
-                        });
                 break;
             case R.id.btn_open_permission_setting:
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));

@@ -5,8 +5,7 @@
 
         <activity
             android:name="com.hujiang.permissiondispatcher.ShadowPermissionActivity"
-            android:theme="@style/Theme.Transparent"
-            android:launchMode="singleTask">
+            android:theme="@style/Theme.Transparent">
         </activity>
 
     </application>

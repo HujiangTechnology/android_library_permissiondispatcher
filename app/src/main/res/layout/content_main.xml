@@ -134,4 +134,10 @@
         android:layout_height="wrap_content"
         android:text="@string/open_battery_optimization_settings"
         android:layout_gravity="center_vertical|right"/>
+
+    <Button
+        android:id="@+id/btn_start_b_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="start b activity"/>
 </LinearLayout>

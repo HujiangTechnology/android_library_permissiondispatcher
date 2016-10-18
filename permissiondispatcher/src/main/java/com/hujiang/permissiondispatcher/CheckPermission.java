@@ -1,14 +1,12 @@
 package com.hujiang.permissiondispatcher;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.StringRes;
-import android.support.v4.content.ContextCompat;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
 import junit.framework.Assert;
 
-import java.security.acl.Permission;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -31,7 +29,6 @@ public class CheckPermission {
         @Override
         public boolean onPermissionRequestFinishedAndCheckNext(String[] permissions) {
             mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
-
             if (mCurPermissionRequestWrapper != null) {
                 requestPermissions(mCurPermissionRequestWrapper);
             }
@@ -74,9 +71,10 @@ public class CheckPermission {
         }
     }
 
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private void requestPermissions(PermissionRequestWrapper permissionRequestWrapper) {
-        PermissionItem item = permissionRequestWrapper.permissionItem;
-        PermissionListener listener = permissionRequestWrapper.permissionListener;
+        final PermissionItem item = permissionRequestWrapper.permissionItem;
+        final PermissionListener listener = permissionRequestWrapper.permissionListener;
 
         if (PermissionUtils.hasSelfPermissions(mContext, item.permissions)) {
             onPermissionGranted(item, listener);

@@ -1,3 +1,6 @@
+### v1.0.9(2016-10-18)
+* optimize the logic flow with permission request queue
+
 ### v1.0.5(2016-07-15)
 * @NeedPermission supports ResId
 * @NeedPermission#needGotoSetting default true
