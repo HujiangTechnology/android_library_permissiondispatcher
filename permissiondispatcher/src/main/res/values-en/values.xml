@@ -3,6 +3,21 @@
     <string name="permission_ok">OK</string>
     <string name="permission_close">Close</string>
     <string name="permission_cancel">Cancel</string>
-    <string name="permission_setting">Setting</string>
-    <string name="permission_denied_msg_default">Permissions can be granted in the app‘s setting</string>
+    <string name="permission_setting">Go setting</string>
+    <string name="permission_deny">Deny</string>
+    <string name="permission_denied_msg_default">%s been denied, and can be granted again in the app‘s setting</string>
+    <string name="permission_hint_calendar">access calendar permission</string>
+    <string name="permission_hint_camera">access camera permission</string>
+    <string name="permission_hint_contacts">access contacts permission</string>
+    <string name="permission_hint_location">access location permission</string>
+    <string name="permission_hint_microphone">access microphone permission</string>
+    <string name="permission_hint_phone">access phone permission</string>
+    <string name="permission_hint_sensors">access body sensors permission</string>
+    <string name="permission_hint_sms">access sms permission</string>
+    <string name="permission_hint_storage">access external storage permission</string>
+    <string name="permission_hint_write_setting">write system setting permission</string>
+    <string name="permission_hint_sys_alert_window">allowed to popup system alert window</string>
+    <string name="permission_name">permission</string>
+    <string name="permission_need">need</string>
+
 </resources>

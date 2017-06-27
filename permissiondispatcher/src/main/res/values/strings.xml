@@ -1,8 +1,22 @@
 <resources>
     <string name="permission_ok">确定</string>
-    <string name="permission_close">确定</string>
+    <string name="permission_close">关闭</string>
     <string name="permission_cancel">取消</string>
-    <string name="permission_setting">设置</string>
-    <string name="permission_denied_msg_default">可以到app设置界面开启权限</string>
+    <string name="permission_setting">去设置</string>
+    <string name="permission_deny">拒绝</string>
+    <string name="permission_denied_msg_default">%s被禁止，请到应用设置界面开启权限</string>
+    <string name="permission_hint_calendar">访问日历权限</string>
+    <string name="permission_hint_camera">访问摄像头权限</string>
+    <string name="permission_hint_contacts">访问通讯录权限</string>
+    <string name="permission_hint_location">访问设备位置信息权限</string>
+    <string name="permission_hint_microphone">访问麦克风设备权限</string>
+    <string name="permission_hint_phone">访问手机状态等权限</string>
+    <string name="permission_hint_sensors">访问设备传感器权限</string>
+    <string name="permission_hint_sms">访问短信权限</string>
+    <string name="permission_hint_storage">访问扩展存储器权限</string>
+    <string name="permission_hint_write_setting">修改系统设置权限</string>
+    <string name="permission_hint_sys_alert_window">系统窗口权限</string>
+    <string name="permission_name">权限</string>
+    <string name="permission_need">需要</string>
 
 </resources>

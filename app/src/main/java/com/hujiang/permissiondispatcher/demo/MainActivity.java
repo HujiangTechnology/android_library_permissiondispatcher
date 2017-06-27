@@ -1,148 +1,215 @@
 package com.hujiang.permissiondispatcher.demo;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.hujiang.permissiondispatcher.CheckPermission;
-import com.hujiang.permissiondispatcher.NeedPermission;
 import com.hujiang.permissiondispatcher.PermissionItem;
 import com.hujiang.permissiondispatcher.PermissionListener;
 import com.hujiang.permissiondispatcher.PermissionUtils;
 
-
-@NeedPermission(permissions = {Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS})
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = "MainActivity";
 
-    String[] normalPermission = new String[]{Manifest.permission.INTERNET};
+    private static final String PERMISSION_FORMAT = "%s %s";
 
-    String[] dangerousPermissionCamera = new String[]{Manifest.permission.CAMERA};
+    Button mButtonCalendar;
+    TextView mTextCalendar;
+    Button mButtonCamera;
+    TextView mTextCamera;
+    Button mButtonContact;
+    TextView mTextContact;
+    Button mButtonLocation;
+    TextView mTextLocation;
+    Button mButtonMicPhone;
+    TextView mTextMicPhone;
+    Button mButtonBodySensor;
+    TextView mTextBodySensor;
+    Button mButtonSMS;
+    TextView mTextSMS;
+    Button mButtonExtStorage;
+    TextView mTextExtStorage;
+    Button mButtonWriteSetting;
+    TextView mTextWriteSetting;
+    Button mButtonSysWindow;
+    TextView mTextSysWindow;
+    Button mButtonMix;
+    TextView mTextMix;
 
-    String[] dangerousPermissionLocation = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION};
+    void onCalendarClick(View view) {
+        grantPermission(mTextCalendar, Manifest.permission.WRITE_CALENDAR);
+    }
 
-    //SYSTEM_ALERT_WINDOW write permission
-    String[] systemAlertWindowPermission = new String[]{Manifest.permission.SYSTEM_ALERT_WINDOW};
-        //system settings write permission
-    String[] settingsPermission = new String[]{Manifest.permission.WRITE_SETTINGS};
+    void onCameraClick(View view) {
+        grantPermission(mTextCamera, Manifest.permission.CAMERA);
+    }
 
-    TextView mTvPermissionInternet;
-    TextView mTvPermissionCamera;
-    TextView mTvPermissionLocation;
-    TextView mTvPermissionSystem;
+    void onContactClick(View view) {
+        grantPermission(mTextContact, Manifest.permission.WRITE_CONTACTS);
+    }
+
+    void onLocationClick(View view) {
+        grantPermission(mTextLocation, Manifest.permission.ACCESS_FINE_LOCATION);
+    }
+
+    void onMicPhoneClick(View view) {
+        grantPermission(mTextMicPhone, Manifest.permission.RECORD_AUDIO);
+    }
+
+    void onBodySensorClick(View view) {
+        grantPermission(mTextBodySensor, Manifest.permission.BODY_SENSORS);
+    }
+
+    void onSMSClick(View view) {
+        grantPermission(mTextSMS, Manifest.permission.SEND_SMS);
+    }
+
+    void onExtStorageClick(View view) {
+        grantPermission(mTextExtStorage, Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
+
+    void onWriteSettingClick(View view) {
+        grantPermission(mTextWriteSetting, Manifest.permission.WRITE_SETTINGS);
+    }
+
+    void onSysWindowClick(View view) {
+        grantPermission(mTextSysWindow, Manifest.permission.SYSTEM_ALERT_WINDOW);
+    }
+
+   void grantPermission(final TextView textView, final String permission) {
+        CheckPermission.instance(MainActivity.this).check(new PermissionItem(permission).needGotoSetting(true), new PermissionListener() {
+            @Override
+            public void permissionGranted() {
+                updatePermissionItemInfo(textView, permission);
+                startBActivity();
+            }
+
+            @Override
+            public void permissionDenied() {
+                updatePermissionItemInfo(textView, permission);
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mTvPermissionInternet = (TextView) findViewById(R.id.tv_permission_internet);
-        mTvPermissionCamera = (TextView) findViewById(R.id.tv_permission_camera);
-        mTvPermissionLocation = (TextView) findViewById(R.id.tv_permission_location);
-        mTvPermissionSystem = (TextView) findViewById(R.id.tv_permission_system);
-        findViewById(R.id.btn_request_permission_all).setOnClickListener(this);
-        findViewById(R.id.btn_request_permission_internet).setOnClickListener(this);
-        findViewById(R.id.btn_request_permission_camera).setOnClickListener(this);
-        findViewById(R.id.btn_request_permission_location).setOnClickListener(this);
-        findViewById(R.id.btn_request_permission_system).setOnClickListener(this);
-        findViewById(R.id.btn_open_permission_setting).setOnClickListener(this);
-        findViewById(R.id.btn_open_battery_optimization_settings).setOnClickListener(this);
-        findViewById(R.id.btn_start_b_activity).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startB();
-            }
-        });
+        mButtonCalendar = (Button)findViewById(R.id.btn_calendar_req);
+        mTextCalendar = (TextView)findViewById(R.id.txt_calendar_per);
+        mButtonCamera = (Button)findViewById(R.id.btn_camera_req);
+        mTextCamera = (TextView)findViewById(R.id.txt_camera_per);
+        mButtonContact = (Button)findViewById(R.id.btn_contact_req);
+        mTextContact = (TextView)findViewById(R.id.txt_contact_per);
+        mButtonBodySensor = (Button)findViewById(R.id.btn_bodysensor_req);
+        mTextBodySensor = (TextView)findViewById(R.id.txt_bodysensor_per);
+        mButtonExtStorage = (Button)findViewById(R.id.btn_extstorage_req);
+        mTextExtStorage = (TextView)findViewById(R.id.txt_extstorage_per);
+        mButtonLocation = (Button)findViewById(R.id.btn_location_req);
+        mTextLocation = (TextView)findViewById(R.id.txt_location_per);
+        mButtonMicPhone = (Button)findViewById(R.id.btn_micphone_req);
+        mTextMicPhone = (TextView)findViewById(R.id.txt_micphone_per);
+        mButtonSMS = (Button)findViewById(R.id.btn_sms_req);
+        mTextSMS = (TextView)findViewById(R.id.txt_sms_per);
+        mButtonSysWindow = (Button)findViewById(R.id.btn_sysalertwindow_req);
+        mTextSysWindow = (TextView)findViewById(R.id.txt_sysalertwindow_per);
+        mButtonWriteSetting = (Button)findViewById(R.id.btn_writesetting_req);
+        mTextWriteSetting = (TextView)findViewById(R.id.txt_writesetting_per);
+        mButtonMix = (Button)findViewById(R.id.btn_mix_permission);
+        mTextMix = (TextView)findViewById(R.id.txt_mix_permission);
+
+        mButtonWriteSetting.setOnClickListener(this);
+        mButtonContact.setOnClickListener(this);
+        mButtonSysWindow.setOnClickListener(this);
+        mButtonSMS.setOnClickListener(this);
+        mButtonMicPhone.setOnClickListener(this);
+        mButtonBodySensor.setOnClickListener(this);
+        mButtonLocation.setOnClickListener(this);
+        mButtonCalendar.setOnClickListener(this);
+        mButtonCamera.setOnClickListener(this);
+        mButtonExtStorage.setOnClickListener(this);
+        mButtonMix.setOnClickListener(this);
 
         updatePermissionStatus();
-
     }
 
-    private void startB() {
-        CheckPermission.instance(this).check(new PermissionItem(Manifest.permission.READ_CALL_LOG), new PermissionListener() {
-            @Override
-            public void permissionGranted() {
-                startActivity(new Intent(MainActivity.this, BActivity.class));
-            }
-
-            @Override
-            public void permissionDenied() {
-
-            }
-        });
+    private void startBActivity() {
+        startActivity(new Intent(MainActivity.this, BActivity.class));
     }
 
     @SuppressWarnings("deprecation")
     private void updatePermissionStatus() {
-        boolean isGranted = PermissionUtils.hasSelfPermissions(this, normalPermission);
-        mTvPermissionInternet.setText(getString(R.string.normal_permission_status, isGranted ? "Granted" : "Denied"));
-        mTvPermissionInternet.setTextColor(getResources().getColor(isGranted ? R.color.green : R.color.red));
+        updatePermissionItemInfo(mTextCalendar, Manifest.permission.WRITE_CALENDAR);
+        updatePermissionItemInfo(mTextCamera, Manifest.permission.CAMERA);
+        updatePermissionItemInfo(mTextContact, Manifest.permission.WRITE_CONTACTS);
+        updatePermissionItemInfo(mTextLocation, Manifest.permission.ACCESS_FINE_LOCATION);
+        updatePermissionItemInfo(mTextMicPhone, Manifest.permission.RECORD_AUDIO);
+        updatePermissionItemInfo(mTextBodySensor, Manifest.permission.BODY_SENSORS);
+        updatePermissionItemInfo(mTextSMS, Manifest.permission.SEND_SMS);
+        updatePermissionItemInfo(mTextExtStorage, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        updatePermissionItemInfo(mTextSysWindow, Manifest.permission.SYSTEM_ALERT_WINDOW);
+        updatePermissionItemInfo(mTextWriteSetting, Manifest.permission.WRITE_SETTINGS);
 
-        isGranted = PermissionUtils.hasSelfPermissions(this, dangerousPermissionCamera);
-        mTvPermissionCamera.setText(getString(R.string.dangerous_permission_status, isGranted ? "Granted" : "Denied"));
-        mTvPermissionCamera.setTextColor(getResources().getColor(isGranted ? R.color.green : R.color.red));
+        //mix permission init
 
-        isGranted = PermissionUtils.hasSelfPermissions(this, dangerousPermissionLocation);
-        mTvPermissionLocation.setText(getString(R.string.dangerous_permission_status, isGranted ? "Granted" : "Denied"));
-        mTvPermissionLocation.setTextColor(getResources().getColor(isGranted ? R.color.green : R.color.red));
-
-        isGranted = PermissionUtils.hasSelfPermissions(this, systemAlertWindowPermission);
-        mTvPermissionSystem.setText(getString(R.string.system_permission_status, isGranted ? "Granted" : "Denied"));
-        mTvPermissionSystem.setTextColor(getResources().getColor(isGranted ? R.color.green : R.color.red));
     }
 
+    private void updatePermissionItemInfo(TextView textView, String permission) {
+        boolean hasPermission = PermissionUtils.hasSelfPermissions(this, permission);
+        textView.setText(String.format(PERMISSION_FORMAT, permission,  hasPermission ? "granted" : "Denied"));
+        textView.setTextColor(hasPermission ? Color.GREEN : Color.RED);
+    }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        switch (id) {
-            case R.id.btn_request_permission_all:
-                break;
-            case R.id.btn_request_permission_camera:
-                break;
-            case R.id.btn_request_permission_location:
-                break;
-            case R.id.btn_request_permission_system:
-                break;
-            case R.id.btn_request_permission_internet:
-                break;
-            case R.id.btn_open_permission_setting:
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                startActivity(intent);
-                break;
-            case R.id.btn_open_battery_optimization_settings:
-                if(PermissionUtils.isOverMarshmallow()) {
-                    Intent batteryIntent = new Intent();
-                    String packageName = getPackageName();
-                    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                    //http://developer.android.com/intl/ko/training/monitoring-device-state/doze-standby.html#support_for_other_use_cases
-                    if (pm.isIgnoringBatteryOptimizations(packageName))
-                        batteryIntent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-                    else {
-                        batteryIntent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                        batteryIntent.setData(Uri.parse("package:" + packageName));
-                    }
-
-                    startActivity(batteryIntent);
-                } else {
-                    Toast.makeText(MainActivity.this, "battery optimizations on Android6.0", Toast.LENGTH_SHORT).show();
+        if (id == R.id.btn_calendar_req) {
+            onCalendarClick(v);
+        } else if (id == R.id.btn_writesetting_req) {
+            onWriteSettingClick(v);
+        } else if (id == R.id.btn_sysalertwindow_req) {
+            onSysWindowClick(v);
+        } else if (id == R.id.btn_sms_req) {
+            onSMSClick(v);
+        } else if (id == R.id.btn_bodysensor_req) {
+            onBodySensorClick(v);
+        } else if (id == R.id.btn_camera_req) {
+            onCameraClick(v);
+        } else if (id == R.id.btn_contact_req) {
+            onContactClick(v);
+        } else if (id == R.id.btn_extstorage_req) {
+            onExtStorageClick(v);
+        } else if (id == R.id.btn_location_req) {
+            onLocationClick(v);
+        } else if (id == R.id.btn_micphone_req) {
+            onMicPhoneClick(v);
+        } else if (id == R.id.btn_mix_permission) {
+            CheckPermission.instance(this).check(new PermissionItem(Manifest.permission.CAMERA
+                    , Manifest.permission.READ_CONTACTS
+                    , Manifest.permission.WRITE_SETTINGS
+                    , Manifest.permission.SYSTEM_ALERT_WINDOW)
+                    .needGotoSetting(true), new PermissionListener() {
+                @Override
+                public void permissionGranted() {
+                    startBActivity();
                 }
-                break;
+
+                @Override
+                public void permissionDenied() {
+
+                }
+            });
         }
     }
 }

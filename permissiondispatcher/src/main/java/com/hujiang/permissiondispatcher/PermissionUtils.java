@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.PermissionChecker;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +39,17 @@ final public class PermissionUtils {
      */
     @TargetApi(value = Build.VERSION_CODES.M)
     public static boolean hasSelfPermissions(Context context, String... permissions) {
+        if (permissions == null || permissions.length == 0) {
+            return false;
+        }
+
         for (String permission : permissions) {
-            if (isOverMarshmallow() && permission.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
-                if (!Settings.canDrawOverlays(context)) {
+            if (permission.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+                if (!canDrawOverlays(context)) {
                     return false;
                 }
-            } else if (isOverMarshmallow() && permission.equals(Manifest.permission.WRITE_SETTINGS)) {
-                if (!Settings.System.canWrite(context)) {
+            } else if (permission.equals(Manifest.permission.WRITE_SETTINGS)) {
+                if (!canWriteSetting(context)) {
                     return false;
                 }
             } else if (PermissionChecker.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -53,9 +59,6 @@ final public class PermissionUtils {
         return true;
     }
 
-
-
-    @TargetApi(value = Build.VERSION_CODES.M)
     public static List<String> findDeniedPermissions(Activity activity, String... permission) {
         List<String> denyPermissions = new ArrayList<>();
         if (!isOverMarshmallow()) {
@@ -63,14 +66,12 @@ final public class PermissionUtils {
         }
 
         for (String value : permission) {
-            // CommonsWare's blog post:https://commonsware.com/blog/2015/08/17/random-musings-android-6p0-sdk.html
-            //support SYSTEM_ALERT_WINDOW,WRITE_SETTINGS
-            if (isOverMarshmallow() && value.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
-                if(!Settings.canDrawOverlays(activity)) {
+            if (value.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+                if(!canDrawOverlays(activity)) {
                     denyPermissions.add(value);
                 }
-            } else if(isOverMarshmallow() && value.equals(Manifest.permission.WRITE_SETTINGS)) {
-                if(!Settings.System.canWrite(activity)) {
+            } else if(value.equals(Manifest.permission.WRITE_SETTINGS)) {
+                if(!canWriteSetting(activity)) {
                     denyPermissions.add(value);
                 }
             } else if(PermissionChecker.checkSelfPermission(activity, value) != PackageManager.PERMISSION_GRANTED) {
@@ -78,5 +79,57 @@ final public class PermissionUtils {
             }
         }
         return denyPermissions;
+    }
+
+    public static boolean canDrawOverlays(Context context) {
+        if (isOverMarshmallow()) {
+            return Settings.canDrawOverlays(context);
+        }
+
+        return true;
+    }
+
+    public static boolean canWriteSetting(Context context) {
+        if (isOverMarshmallow()) {
+            return Settings.System.canWrite(context);
+        }
+
+        return true;
+    }
+
+    public static boolean containsSystemAlertWindowPermission(String[] permissions) {
+        return contains(permissions, Manifest.permission.SYSTEM_ALERT_WINDOW);
+    }
+
+    public static boolean containsWriteSettingPermission(String[] permissions) {
+        return contains(permissions, Manifest.permission.WRITE_SETTINGS);
+    }
+
+    private static boolean contains(String[] sources, String target) {
+        if (sources == null || sources.length <= 0 || TextUtils.isEmpty(target)) {
+            return false;
+        }
+
+        for (String s : sources) {
+            if (target.equals(s)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean shouldShowRequestPermissionRationale(Activity activity, String[] permissions) {
+        if (permissions == null || permissions.length <= 0 || activity == null) {
+            return false;
+        }
+
+        for (String p : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, p)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
