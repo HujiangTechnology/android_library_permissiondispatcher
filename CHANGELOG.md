@@ -1,3 +1,7 @@
+### v1.0.10(2017-06-27)
+* optimize the work flow of the permission check
+* friendly and clear toast when permission denied
+
 ### v1.0.9(2016-10-18)
 * optimize the logic flow with permission request queue
 
