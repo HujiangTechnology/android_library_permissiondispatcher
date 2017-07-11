@@ -257,11 +257,10 @@ public class ShadowPermissionActivity extends FragmentActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (permissions != null && permissions.length > 0 && grantResults != null && grantResults.length > 0) {
             ArrayList<String> deniedPermissions = new ArrayList<>();
-            for (int i = 0; i < permissions.length; i++) {
-                String permission = permissions[i];
-
-                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                    deniedPermissions.add(permission);
+            for (String p : permissions) {
+                boolean hasPermission = PermissionUtils.hasSelfPermissions(ShadowPermissionActivity.this, p);
+                if (!hasPermission) {
+                    deniedPermissions.add(p);
                 }
             }
 

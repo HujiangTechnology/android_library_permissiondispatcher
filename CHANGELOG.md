@@ -1,3 +1,6 @@
+### v1.0.11（2017-07-11）
+* 修复ZUK手机上PermissionChecker check权限返回-2，却在onRequestPermissionsResult返回0的Bug
+
 ### v1.0.10(2017-06-27)
 * optimize the work flow of the permission check
 * friendly and clear toast when permission denied
