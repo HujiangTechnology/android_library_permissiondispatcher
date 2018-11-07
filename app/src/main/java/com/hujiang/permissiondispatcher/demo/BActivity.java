@@ -35,6 +35,11 @@ public class BActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+//                Intent intent = new Intent(BActivity.this, MainActivity.class);
+//                BActivity.this.startActivity(intent);
+//
+//                BActivity.this.finish();
             }
         });
     }

@@ -2,11 +2,6 @@ package com.hujiang.permissiondispatcher;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.res.Resources;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.v4.content.PermissionChecker;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -26,8 +21,8 @@ public class CheckPermission {
     private static final String TAG = "CheckPermission";
 
     public static final HashMap<String, String> PERMISSION_MAP = new HashMap<>();
-
     private static CheckPermission sInstance;
+
     private final Context mContext;
     private PermissionRequestWrapper mCurPermissionRequestWrapper;
     private Queue<PermissionRequestWrapper> mPermissionRequestWrappers = new ConcurrentLinkedQueue<>();
@@ -37,6 +32,8 @@ public class CheckPermission {
             mCurPermissionRequestWrapper = mPermissionRequestWrappers.poll();
             if (mCurPermissionRequestWrapper != null) {
                 requestPermissions(mCurPermissionRequestWrapper);
+            } else {
+                close();
             }
 
             return mCurPermissionRequestWrapper != null;
@@ -55,37 +52,43 @@ public class CheckPermission {
         return sInstance;
     }
 
-    private CheckPermission(Context context) {
+    public static CheckPermission create(Context context) {
+        return new CheckPermission(context);
+    }
+
+    CheckPermission(Context context) {
         this.mContext = context.getApplicationContext();
 
-        PERMISSION_MAP.put(Manifest.permission.READ_CALENDAR, context.getString(R.string.permission_hint_calendar));
-        PERMISSION_MAP.put(Manifest.permission.WRITE_CALENDAR, context.getString(R.string.permission_hint_calendar));
-        PERMISSION_MAP.put(Manifest.permission.CAMERA, context.getString(R.string.permission_hint_camera));
-        PERMISSION_MAP.put(Manifest.permission.READ_CONTACTS, context.getString(R.string.permission_hint_contacts));
-        PERMISSION_MAP.put(Manifest.permission.WRITE_CONTACTS, context.getString(R.string.permission_hint_contacts));
-        PERMISSION_MAP.put(Manifest.permission.GET_ACCOUNTS, context.getString(R.string.permission_hint_contacts));
-        PERMISSION_MAP.put(Manifest.permission.ACCESS_FINE_LOCATION, context.getString(R.string.permission_hint_location));
-        PERMISSION_MAP.put(Manifest.permission.ACCESS_COARSE_LOCATION, context.getString(R.string.permission_hint_location));
-        PERMISSION_MAP.put(Manifest.permission.RECORD_AUDIO, context.getString(R.string.permission_hint_microphone));
-        PERMISSION_MAP.put(Manifest.permission.READ_PHONE_STATE, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.CALL_PHONE, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.READ_CALL_LOG, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.WRITE_CALL_LOG, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.ADD_VOICEMAIL, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.USE_SIP, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.PROCESS_OUTGOING_CALLS, context.getString(R.string.permission_hint_phone));
-        PERMISSION_MAP.put(Manifest.permission.BODY_SENSORS, context.getString(R.string.permission_hint_sensors));
-        PERMISSION_MAP.put(Manifest.permission.SEND_SMS, context.getString(R.string.permission_hint_sms));
-        PERMISSION_MAP.put(Manifest.permission.RECEIVE_SMS, context.getString(R.string.permission_hint_sms));
-        PERMISSION_MAP.put(Manifest.permission.READ_SMS, context.getString(R.string.permission_hint_sms));
-        PERMISSION_MAP.put(Manifest.permission.RECEIVE_WAP_PUSH, context.getString(R.string.permission_hint_sms));
-        PERMISSION_MAP.put(Manifest.permission.RECEIVE_SMS, context.getString(R.string.permission_hint_sms));
-        PERMISSION_MAP.put(Manifest.permission.READ_EXTERNAL_STORAGE, context.getString(R.string.permission_hint_storage));
-        PERMISSION_MAP.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.permission_hint_storage));
-        PERMISSION_MAP.put(Manifest.permission.WRITE_SETTINGS, context.getString(R.string.permission_hint_write_setting));
-        PERMISSION_MAP.put(Manifest.permission.SYSTEM_ALERT_WINDOW, context.getString(R.string.permission_hint_sys_alert_window));
-
-        ShadowPermissionActivity.setOnPermissionRequestFinishedListener(mOnPermissionRequestFinishedListener);
+        synchronized (PERMISSION_MAP) {
+            if (PERMISSION_MAP.isEmpty()) {
+                PERMISSION_MAP.put(Manifest.permission.READ_CALENDAR, context.getString(R.string.permission_hint_calendar));
+                PERMISSION_MAP.put(Manifest.permission.WRITE_CALENDAR, context.getString(R.string.permission_hint_calendar));
+                PERMISSION_MAP.put(Manifest.permission.CAMERA, context.getString(R.string.permission_hint_camera));
+                PERMISSION_MAP.put(Manifest.permission.READ_CONTACTS, context.getString(R.string.permission_hint_contacts));
+                PERMISSION_MAP.put(Manifest.permission.WRITE_CONTACTS, context.getString(R.string.permission_hint_contacts));
+                PERMISSION_MAP.put(Manifest.permission.GET_ACCOUNTS, context.getString(R.string.permission_hint_contacts));
+                PERMISSION_MAP.put(Manifest.permission.ACCESS_FINE_LOCATION, context.getString(R.string.permission_hint_location));
+                PERMISSION_MAP.put(Manifest.permission.ACCESS_COARSE_LOCATION, context.getString(R.string.permission_hint_location));
+                PERMISSION_MAP.put(Manifest.permission.RECORD_AUDIO, context.getString(R.string.permission_hint_microphone));
+                PERMISSION_MAP.put(Manifest.permission.READ_PHONE_STATE, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.CALL_PHONE, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.READ_CALL_LOG, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.WRITE_CALL_LOG, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.ADD_VOICEMAIL, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.USE_SIP, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.PROCESS_OUTGOING_CALLS, context.getString(R.string.permission_hint_phone));
+                PERMISSION_MAP.put(Manifest.permission.BODY_SENSORS, context.getString(R.string.permission_hint_sensors));
+                PERMISSION_MAP.put(Manifest.permission.SEND_SMS, context.getString(R.string.permission_hint_sms));
+                PERMISSION_MAP.put(Manifest.permission.RECEIVE_SMS, context.getString(R.string.permission_hint_sms));
+                PERMISSION_MAP.put(Manifest.permission.READ_SMS, context.getString(R.string.permission_hint_sms));
+                PERMISSION_MAP.put(Manifest.permission.RECEIVE_WAP_PUSH, context.getString(R.string.permission_hint_sms));
+                PERMISSION_MAP.put(Manifest.permission.RECEIVE_SMS, context.getString(R.string.permission_hint_sms));
+                PERMISSION_MAP.put(Manifest.permission.READ_EXTERNAL_STORAGE, context.getString(R.string.permission_hint_storage));
+                PERMISSION_MAP.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, context.getString(R.string.permission_hint_storage));
+                PERMISSION_MAP.put(Manifest.permission.WRITE_SETTINGS, context.getString(R.string.permission_hint_write_setting));
+                PERMISSION_MAP.put(Manifest.permission.SYSTEM_ALERT_WINDOW, context.getString(R.string.permission_hint_sys_alert_window));
+            }
+        }
     }
 
     public void check(PermissionItem permissionItem, PermissionListener permissionListener) {
@@ -109,6 +112,14 @@ public class CheckPermission {
     private void requestPermissions(PermissionRequestWrapper permissionRequestWrapper) {
         final PermissionItem item = permissionRequestWrapper.permissionItem;
         final PermissionListener listener = permissionRequestWrapper.permissionListener;
+
+        CheckPermissionHolder.CheckPermissionProxy proxy = CheckPermissionHolder.instance().find(this);
+        if (proxy != null) {
+            proxy.permissionListener = listener;
+        } else {
+            proxy = CheckPermissionHolder.instance().add(this, mOnPermissionRequestFinishedListener, listener);
+        }
+
         ShadowPermissionActivity.start(mContext
                 , item.permissions
                 , item.rationalMessage
@@ -117,7 +128,7 @@ public class CheckPermission {
                 , item.settingText
                 , item.deniedMessage
                 , item.deniedButton
-                , listener);
+                , proxy.tag);
     }
 
     private void onPermissionGranted(PermissionItem item, PermissionListener listener) {
@@ -140,6 +151,10 @@ public class CheckPermission {
         mOnPermissionRequestFinishedListener.onPermissionRequestFinishedAndCheckNext(item.permissions);
     }
 
+    private void close() {
+        CheckPermissionHolder.instance().remove(this);
+    }
+
     class PermissionRequestWrapper {
         PermissionItem permissionItem;
         PermissionListener permissionListener;
@@ -149,5 +164,4 @@ public class CheckPermission {
             this.permissionListener = listener;
         }
     }
-
 }

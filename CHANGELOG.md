@@ -1,3 +1,6 @@
+### v1.0.12(2018-11-06)
+* CheckPermission新增api
+
 ### v1.0.11（2017-07-11）
 * 修复ZUK手机上PermissionChecker check权限返回-2，却在onRequestPermissionsResult返回0的Bug
 

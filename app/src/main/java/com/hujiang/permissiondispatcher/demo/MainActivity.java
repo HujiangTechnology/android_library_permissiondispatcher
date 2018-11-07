@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.hujiang.permissiondispatcher.CheckPermission;
+import com.hujiang.permissiondispatcher.CheckPermissionHolder;
 import com.hujiang.permissiondispatcher.PermissionItem;
 import com.hujiang.permissiondispatcher.PermissionListener;
 import com.hujiang.permissiondispatcher.PermissionUtils;
@@ -83,8 +85,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         grantPermission(mTextSysWindow, Manifest.permission.SYSTEM_ALERT_WINDOW);
     }
 
+    CheckPermission mCheckPermission;
+
    void grantPermission(final TextView textView, final String permission) {
-        CheckPermission.instance(MainActivity.this).check(new PermissionItem(permission).needGotoSetting(true), new PermissionListener() {
+       if (mCheckPermission == null) {
+           mCheckPermission = CheckPermission.create(this);
+       }
+       mCheckPermission.check(new PermissionItem(permission).needGotoSetting(true), new PermissionListener() {
             @Override
             public void permissionGranted() {
                 updatePermissionItemInfo(textView, permission);
@@ -186,6 +193,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             onBodySensorClick(v);
         } else if (id == R.id.btn_camera_req) {
             onCameraClick(v);
+//            new Handler().postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    startBActivity();
+//                }
+//            }, 500);
         } else if (id == R.id.btn_contact_req) {
             onContactClick(v);
         } else if (id == R.id.btn_extstorage_req) {
